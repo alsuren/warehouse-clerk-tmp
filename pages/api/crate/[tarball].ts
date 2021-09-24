@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 
-const SUPPORTED_ARCHETECTURES = [
+const SUPPORTED_ARCHITECTURES = [
   "x86_64-pc-windows-msvc",
   "x86_64-apple-darwin",
   "x86_64-unknown-linux-gnu",
@@ -23,7 +23,7 @@ export default (request: NextApiRequest, response: NextApiResponse) => {
     response
       .status(403)
       .send(
-        `Could not extract architecture from ${key}. Supported architectures are: ${SUPPORTED_ARCHETECTURES.join(
+        `Could not extract architecture from ${key}. Supported architectures are: ${SUPPORTED_ARCHITECTURES.join(
           ", "
         )}`
       );
@@ -41,7 +41,7 @@ export default (request: NextApiRequest, response: NextApiResponse) => {
 };
 
 const get_arch = (key: string): string | null => {
-  for (const arch of SUPPORTED_ARCHETECTURES) {
+  for (const arch of SUPPORTED_ARCHITECTURES) {
     if (key.endsWith(arch)) {
       return arch;
     }
