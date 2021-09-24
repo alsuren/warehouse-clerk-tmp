@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import Redis from "ioredis";
 
 const SUPPORTED_ARCHITECTURES = [
   "x86_64-pc-windows-msvc",
@@ -6,7 +7,7 @@ const SUPPORTED_ARCHITECTURES = [
   "x86_64-unknown-linux-gnu",
 ];
 
-export default (request: NextApiRequest, response: NextApiResponse) => {
+export default async (request: NextApiRequest, response: NextApiResponse) => {
   const tarball = request.query.tarball;
   if (typeof tarball !== "string") {
     response
@@ -31,13 +32,16 @@ export default (request: NextApiRequest, response: NextApiResponse) => {
   }
   const version = key.replace(crate + "-", "").replace("-" + arch, "");
 
-  // This response message will only be shown to the user if we failed to
-  // fetch the pre-built tarball.
-  response
-    .status(200)
-    .send(
-      `We have reported your installation request for ${crate} ${version} on ${arch} so it should be built soon.`
-    );
+  const now = new Date();
+  const year = now.getUTCFullYear();
+  const month = now.getUTCMonth() + 1;
+  const count = await report_request(year, month, crate, version, arch);
+  response.status(200).send(
+    // This response message will only be shown to the user if we failed to
+    // fetch the pre-built tarball.
+    `We have reported your installation request for ${crate} ${version} on ${arch} so it should be built soon.\n` +
+      `It has been requested ${count} times since ${year}/${month}/1.`
+  );
 };
 
 const get_arch = (key: string): string | null => {
@@ -47,4 +51,15 @@ const get_arch = (key: string): string | null => {
     }
   }
   return null;
+};
+
+const report_request = (
+  year: number,
+  month: number,
+  crate: string,
+  version: string,
+  arch: string
+): Promise<number> => {
+  let client = new Redis(process.env.REDIS_URL);
+  return client.hincrby(`${year}/${month}`, `${crate}/${version}/${arch}`, 1);
 };
