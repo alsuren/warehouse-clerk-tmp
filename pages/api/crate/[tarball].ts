@@ -128,7 +128,15 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
   const now = new Date();
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth() + 1;
-  const count = await report_request(year, month, crate, version, arch);
+  const agent = request.headers["user-agent"] || "null";
+  const count = await report_request({
+    year,
+    month,
+    crate,
+    version,
+    arch,
+    agent,
+  });
   response.status(200).send(
     // This response message will only be shown to the user if we failed to
     // fetch the pre-built tarball.
@@ -146,13 +154,26 @@ const get_arch = (key: string): string | null => {
   return null;
 };
 
-const report_request = (
-  year: number,
-  month: number,
-  crate: string,
-  version: string,
-  arch: string
-): Promise<number> => {
+const report_request = async ({
+  year,
+  month,
+  crate,
+  version,
+  arch,
+  agent,
+}: {
+  year: number;
+  month: number;
+  crate: string;
+  version: string;
+  arch: string;
+  agent: string;
+}): Promise<number> => {
   let client = new Redis(process.env.REDIS_URL);
-  return client.hincrby(`${year}/${month}`, `${crate}/${version}/${arch}`, 1);
+  await client.hincrby(`agents/${year}/${month}`, agent, 1);
+  return await client.hincrby(
+    `${year}/${month}`,
+    `${crate}/${version}/${arch}`,
+    1
+  );
 };
