@@ -2,9 +2,16 @@ import { NextApiRequest, NextApiResponse } from "next";
 import Redis from "ioredis";
 
 export default async (request: NextApiRequest, response: NextApiResponse) => {
-  const now = new Date();
-  const year = now.getUTCFullYear();
-  const month = now.getUTCMonth() + 1;
+  let year = parseInt(request.query.year?.toString(), 10);
+  let month = parseInt(request.query.month?.toString(), 10);
+  if (isNaN(year) || year <= 0) {
+    const now = new Date();
+    year = now.getUTCFullYear();
+  }
+  if (isNaN(month) || month <= 0) {
+    const now = new Date();
+    month = now.getUTCMonth() + 1;
+  }
   const counts = await get_stats(year, month);
   response.status(200).send(JSON.stringify(counts));
 };
