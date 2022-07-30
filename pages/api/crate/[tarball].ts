@@ -128,10 +128,13 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
   const now = new Date();
   const year = now.getUTCFullYear();
   const month = now.getUTCMonth() + 1;
+  const day = now.getUTCDate();
+
   const agent = request.headers["user-agent"] || "null";
   const count = await report_request({
     year,
     month,
+    day,
     crate,
     version,
     arch,
@@ -141,7 +144,7 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
     // This response message will only be shown to the user if we failed to
     // fetch the pre-built tarball.
     `We have reported your installation request for ${crate} ${version} on ${arch} so it should be built soon.\n` +
-      `It has been requested ${count} times since ${year}/${month}/1.`
+      `It has been requested ${count} times since ${year}-${month}-${day}T00:00:00.000Z.\n`
   );
 };
 
@@ -157,6 +160,7 @@ const get_arch = (key: string): string | null => {
 const report_request = async ({
   year,
   month,
+  day,
   crate,
   version,
   arch,
@@ -164,15 +168,16 @@ const report_request = async ({
 }: {
   year: number;
   month: number;
+  day: number;
   crate: string;
   version: string;
   arch: string;
   agent: string;
 }): Promise<number> => {
   let client = new Redis(process.env.REDIS_URL);
-  await client.hincrby(`agents/${year}/${month}`, agent, 1);
+  await client.hincrby(`agents/${year}/${month}/${day}`, agent, 1);
   return await client.hincrby(
-    `${year}/${month}`,
+    `${year}/${month}/${day}`,
     `${crate}/${version}/${arch}`,
     1
   );
