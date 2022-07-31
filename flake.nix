@@ -12,11 +12,6 @@
       let pkgs = nixpkgs.legacyPackages."${system}";
       in {
         devShells.default = pkgs.mkShell {
-
-          # necessary to override nix's defaults which cannot be overriden as others are
-          shellHook = ''
-            '';
-
           nativeBuildInputs = with pkgs; [ 
             pkgs.nodejs-16_x
             pkgs.yarn
