@@ -193,7 +193,8 @@ const report_request = async ({
   );
 
   try {
-    console.log("downstream:", await (await downstream_promise).text());
+    let result = await downstream_promise
+    console.log("downstream:", result.status, await (result).text());
   } catch (err) {
     console.log("downstream error:", err)
   }
