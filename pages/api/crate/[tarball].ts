@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import Redis from "ioredis";
+import fetch from "node-fetch";
 
 const SUPPORTED_ARCHITECTURES = [
   "x86_64-pc-windows-msvc",
@@ -145,7 +146,7 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
     // This response message will only be shown to the user if we failed to
     // fetch the pre-built tarball.
     `We have reported your installation request for ${crate} ${version} on ${arch} so it should be built soon.\n` +
-      `It has been requested ${count} times since ${year}-${month}-${day}T00:00:00.000Z.\n`
+    `It has been requested ${count} times since ${year}-${month}-${day}T00:00:00.000Z.\n`
   );
 };
 
@@ -176,10 +177,26 @@ const report_request = async ({
   agent: string;
 }): Promise<number> => {
   let client = new Redis(process.env.REDIS_URL);
+  // Forward to rust-based stats server in the background.
+  let downstream_promise = fetch('https://cargo-quickinstall-stats-server.fly.dev/record-install' + new URLSearchParams({
+    crate,
+    version,
+    arch,
+    agent,
+  }));
+
   await client.hincrby(`agents/${year}/${month}/${day}`, agent, 1);
-  return await client.hincrby(
+  let count = await client.hincrby(
     `${year}/${month}/${day}`,
     `${crate}/${version}/${arch}`,
     1
   );
+
+  try {
+    console.log("downstream:", await (await downstream_promise).text());
+  } catch (err) {
+    console.log("downstream error:", err)
+  }
+
+  return count;
 };
