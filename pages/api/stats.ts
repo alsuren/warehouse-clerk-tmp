@@ -13,7 +13,7 @@ export default async (request: NextApiRequest, response: NextApiResponse) => {
     const now = new Date();
     month = now.getUTCMonth() + 1;
   }
-  if (isNaN(month) || month <= 0) {
+  if (isNaN(day) || day <= 0) {
     const now = new Date();
     day = now.getUTCDate();
   }
