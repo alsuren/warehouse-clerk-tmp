@@ -178,7 +178,7 @@ const report_request = async ({
 }): Promise<number> => {
   let client = new Redis(process.env.REDIS_URL);
   // Forward to rust-based stats server in the background.
-  let downstream_promise = fetch('https://cargo-quickinstall-stats-server.fly.dev/record-install' + new URLSearchParams({
+  let downstream_promise = fetch('https://cargo-quickinstall-stats-server.fly.dev/record-install?' + new URLSearchParams({
     crate,
     version,
     arch,
