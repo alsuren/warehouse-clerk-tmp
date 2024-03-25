@@ -185,9 +185,11 @@ const report_request = async ({
     agent,
   }));
 
+  let count = 0;
+
   try {
     await client.hincrby(`agents/${year}/${month}/${day}`, agent, 1);
-    let count = await client.hincrby(
+    count = await client.hincrby(
       `${year}/${month}/${day}`,
       `${crate}/${version}/${arch}`,
       1
