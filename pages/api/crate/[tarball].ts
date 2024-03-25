@@ -185,12 +185,16 @@ const report_request = async ({
     agent,
   }));
 
-  await client.hincrby(`agents/${year}/${month}/${day}`, agent, 1);
-  let count = await client.hincrby(
-    `${year}/${month}/${day}`,
-    `${crate}/${version}/${arch}`,
-    1
-  );
+  try {
+    await client.hincrby(`agents/${year}/${month}/${day}`, agent, 1);
+    let count = await client.hincrby(
+      `${year}/${month}/${day}`,
+      `${crate}/${version}/${arch}`,
+      1
+    );
+  } catch (e) {
+    console.warn("redis incr failed:", e)
+  }
 
   try {
     let result = await downstream_promise
