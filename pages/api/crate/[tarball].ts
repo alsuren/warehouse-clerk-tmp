@@ -183,7 +183,7 @@ const report_request = async ({
     version,
     arch,
     agent,
-  }));
+  }), { method: 'POST' });
 
   let count = 0;
 
