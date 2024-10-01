@@ -181,7 +181,7 @@ const report_request = async ({
   let downstream_promise = fetch('https://cargo-quickinstall-stats-server.fly.dev/record-install?' + new URLSearchParams({
     crate,
     version,
-    arch,
+    target: arch,
     agent,
   }), { method: 'POST' });
 
